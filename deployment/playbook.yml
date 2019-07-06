@@ -1,0 +1,23 @@
+---
+- name: nginx and gunicorn build Flask
+  hosts:production                                                                   
+  remote_user: centos
+  tasks:
+       - name: install nginx and uwsgi and uwsgi-plugin-python
+       action: yum name={{ item.name }} state=present
+       with_items:
+              - { name:'nginx'}
+              - { name:'uwsgi'}
+              - { name:'uwsgi-plugin-python'}
+        - name: create directory
+          file: state=directory dest=/home/centos/development
+         - name: synchronize project directory to target server
+           synchronize:
+             src: /root/ansible
+             dest: /home/centos/development
+             delete: yes
+         - name: build flask
+            command: gunicorn -w 4 -b 0.0.0.0:8001 test:app
+  handlers:         #handler 启动nginx
+     - name: start nginx
+       command: nginx -c /home/centos/development/deployment/nginx.conf   #启动nginx指令为：nginx安装目录地址 -c nginx配置文件地址
